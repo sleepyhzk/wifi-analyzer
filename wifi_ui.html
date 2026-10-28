@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WiFi Analyzer Pro</title>
+<script>(function(){var p="dark";try{p=localStorage.getItem("wifi-theme")||"dark"}catch(e){}
+var t=p==="auto"?(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"):p;document.documentElement.setAttribute("data-theme",t)})()</script>
+<!-- Font + icon chỉ là phần trang trí: nếu máy chưa có mạng thì tool vẫn dùng bình thường -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.400.0/dist/umd/lucide.min.js"></script>
+<style>
+/*THEME*/
+:root{color-scheme:dark;--bg:#070b14;--text:#e2e8f0;--hi:#fff;--soft:#cbd5e1;--muted:#94a3b8;--dim:#64748b;--line:#1e293b;
+--s:#0f172a;--w:#020617;--ctl:#0a0f1e;--s3:#1e293b;--bd:#334155;--bd2:#ffffff1a;--glass:rgba(15,23,42,.75);--edge:rgba(255,255,255,.08);
+--accent:#38bdf8;--cy:#22d3ee;--good:#34d399;--mid:#fbbf24;--bad:#f43f5e;
+--c-cy:#67e8f9;--c-sk:#7dd3fc;--c-in:#a5b4fc;--c-gn:#6ee7b7;--c-rs:#fda4af;--proBg:#083344aa;--b5bg:#1e1b4b99;--shadow:0 20px 40px -20px #000a;
+--mono:"JetBrains Mono",ui-monospace,Consolas,monospace}
+:root[data-theme=light]{color-scheme:light;--bg:#d5dce6;--text:#1e293b;--hi:#0f172a;--soft:#334155;--muted:#5b6b82;--dim:#8493a8;--line:#c3ccd9;
+--s:#e8edf4;--w:#dde3ec;--ctl:#e8edf4;--s3:#cfd7e3;--bd:#b0bccc;--bd2:#0f172a30;--glass:rgba(232,237,244,.88);--edge:rgba(15,23,42,.12);
+--accent:#0284c7;--cy:#0e7490;--good:#047857;--mid:#b45309;--bad:#be123c;
+--c-cy:#0e7490;--c-sk:#075985;--c-in:#3730a3;--c-gn:#047857;--c-rs:#9f1239;--proBg:#bfe3ea;--b5bg:#d2d8f0;--shadow:0 10px 30px -15px #0f172a55}
+/*END*/
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:13px/1.5 Inter,system-ui,"Segoe UI",sans-serif;padding:14px;-webkit-font-smoothing:antialiased}
+::selection{background:#06b6d44d;color:var(--c-cy)}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:9px}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.mono{font-family:var(--mono)}.muted{color:var(--muted)}.cy{color:var(--cy)}.sk{color:var(--c-sk)}
+.ic{width:15px;height:15px;vertical-align:-3px;flex:none}
+.glass{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--edge);border-radius:16px;box-shadow:var(--shadow)}
+[data-theme=light] body{background:linear-gradient(180deg,#dfe5ee,#cdd5e1)}
+/* header */
+.hdr{padding:18px 20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.hdr:before{content:"";position:absolute;left:-90px;top:-100px;width:260px;height:260px;border-radius:50%;background:#06b6d41a;filter:blur(48px);pointer-events:none}
+.brand{display:flex;gap:14px;align-items:center;position:relative}
+.logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(45deg,#0891b2,#0ea5e9,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 8px 20px #06b6d433}
+.logo .ic{width:24px;height:24px}
+h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--hi);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pro{font:600 11px var(--mono);color:var(--c-cy);background:var(--proBg);border:1px solid #06b6d44d;padding:1px 8px;border-radius:6px}
+.live{display:inline-flex;gap:6px;align-items:center;font:600 11px Inter;color:var(--good);background:#10b9811a;border:1px solid #10b98140;padding:2px 10px;border-radius:99px}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--good);animation:ping 1.4s infinite}.live.off{color:var(--muted);background:#64748b1a;border-color:#64748b40}.live.off i{background:var(--dim);animation:none}
+@keyframes ping{0%{box-shadow:0 0 0 0 #34d39988}100%{box-shadow:0 0 0 7px #34d39900}}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;color:var(--muted);font:12px var(--mono)}.meta b{color:var(--soft);font-weight:600}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:relative}
+button,select,input{font:inherit;color:inherit}
+.btn{border:1px solid var(--bd);background:color-mix(in srgb,var(--ctl) 60%,transparent);color:var(--text);border-radius:12px;padding:9px 14px;font-size:12px;font-weight:500;display:inline-flex;gap:7px;align-items:center;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--s3)}.btn:active{transform:scale(.96)}.btn:disabled{opacity:.55;cursor:wait}
+.btn.p{background:linear-gradient(90deg,#06b6d4,#2563eb);border-color:transparent;color:#020617;font-weight:700;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 8px 20px #06b6d440}
+.btn.p:hover{filter:brightness(1.12)}.btn.sm{padding:6px 12px;border-radius:9px}
+.btn.dn{background:#f43f5e1a;border-color:#f43f5e4d;color:var(--c-rs)}.btn.dn:hover{background:#f43f5e33}
+.btn .am{color:#fbbf24}.btn .cb{color:var(--cy)}.btn .ib2{color:#818cf8}
+select,input[type=text],input[type=password]{background:color-mix(in srgb,var(--ctl) 60%,transparent);border:1px solid var(--bd2);border-radius:12px;padding:9px 12px;font-size:12px;outline:none}
+select{color:var(--soft);cursor:pointer}select option{background:var(--s)}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px #38bdf833}
+input[type=checkbox]{accent-color:#06b6d4;cursor:pointer;width:14px;height:14px}
+.spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+/* hero */
+.hero{padding:22px;border-color:#06b6d433;box-shadow:0 0 20px -3px #38bdf840;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-60px;bottom:-70px;width:300px;height:300px;border-radius:50%;background:#2563eb1a;filter:blur(50px);pointer-events:none}
+.hg{display:grid;grid-template-columns:minmax(300px,4fr) 8fr;gap:24px;align-items:center;position:relative;z-index:1}
+.hs{display:flex;gap:20px;align-items:center;padding-right:24px;border-right:1px solid color-mix(in srgb,var(--s3) 80%,transparent)}
+.sigbox{--qc:#fbbf24;width:96px;height:96px;border-radius:16px;border:1px solid color-mix(in srgb,var(--qc) 40%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--qc) 22%,transparent),#0000);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;flex:none}
+.sigbox b{font:800 32px var(--mono);color:var(--qc);letter-spacing:-.03em;line-height:1.1}.sigbox small{font:10px var(--mono);text-transform:uppercase;letter-spacing:.15em;color:var(--muted)}
+.sigbox:after{content:"";position:absolute;right:-4px;top:-4px;width:14px;height:14px;border-radius:50%;background:var(--qc);animation:rp 2.5s ease-in-out infinite}
+@keyframes rp{0%,100%{transform:scale(.95);opacity:.8}50%{transform:scale(1.1);opacity:.4}}
+.qr{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.qp{font:700 11px Inter;text-transform:uppercase;letter-spacing:.06em;padding:2px 10px;border-radius:99px;border:1px solid currentColor;background:color-mix(in srgb,currentColor 14%,transparent)}
+h2{margin:0;font-size:22px;font-weight:700;color:var(--hi);display:flex;gap:8px;align-items:center;word-break:break-word}
+h2 .ic{color:var(--muted);width:16px;height:16px}
+.sub2{font:12px var(--mono);color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block}
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.spec{padding:10px;border-radius:12px;background:color-mix(in srgb,var(--s) 80%,transparent);border:1px solid var(--line);min-width:0}
+.spec span{display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:500}
+.spec b{font:700 13px var(--mono);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spec button{background:none;border:0;padding:0;cursor:pointer;color:var(--soft);font:12px var(--mono);display:flex;gap:4px;align-items:center;max-width:100%}.spec button:hover{color:var(--cy)}
+.ha{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px}
+.ha div{display:flex;flex-wrap:wrap;gap:8px}.note{font:italic 11px var(--mono);color:var(--dim)}
+.act{margin-top:18px;padding-top:16px;border-top:1px solid color-mix(in srgb,var(--s3) 80%,transparent);position:relative;z-index:1}
+.act .row2{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.act input[type=password],.act input[type=text]{flex:1;min-width:200px}
+.act label{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:12px;cursor:pointer}
+.msg{margin-top:10px;font-size:12px;word-break:break-word}.msg.err{color:var(--c-rs)}.msg.ok{color:var(--good)}
+/* toolbar + tabs */
+.tb{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--s) 60%,transparent);border:1px solid var(--line)}
+.sr{position:relative;flex:1;min-width:220px}.sr .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}.sr input{width:100%;padding-left:36px}
+.pills{display:flex;gap:4px;background:color-mix(in srgb,var(--w) 80%,transparent);padding:4px;border-radius:12px;border:1px solid var(--line)}
+.pl{display:inline-flex;gap:6px;align-items:center;border:1px solid transparent;background:none;color:var(--muted);padding:6px 12px;border-radius:9px;font-size:12px;cursor:pointer;transition:.15s}
+.pl:hover{color:var(--hi)}.pl.on{background:#06b6d433;color:var(--c-cy);border-color:#06b6d44d;font-weight:500}
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);padding-bottom:8px;overflow-x:auto}
+.tab{border:1px solid transparent;background:none;color:var(--muted);padding:9px 16px;border-radius:12px;font-size:12px;font-weight:500;display:flex;gap:8px;align-items:center;cursor:pointer;white-space:nowrap;transition:.15s}
+.tab:hover{color:var(--text);background:var(--s)}.tab.on{background:linear-gradient(90deg,#06b6d433,#3b82f633);color:var(--c-cy);border-color:#06b6d466;font-weight:700}
+section{display:none}section.on{display:block}
+.pad{padding:20px}.stack>*+*{margin-top:16px}
+h3{margin:0;font-size:14px;font-weight:700;color:var(--hi);display:flex;gap:8px;align-items:center}h3 .ic{color:var(--cy)}
+.hd{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}.hd p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.box{background:color-mix(in srgb,var(--w) 80%,transparent);border:1px solid color-mix(in srgb,var(--s3) 80%,transparent);border-radius:12px;padding:10px}
+/* tables */
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}
+th{background:color-mix(in srgb,var(--s) 90%,transparent);color:var(--muted);font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:13px 9px;border-bottom:1px solid var(--line);user-select:none}
+th.s{cursor:pointer}th.s:hover,th.on{color:var(--cy)}
+td{padding:11px 9px;border-bottom:1px solid color-mix(in srgb,var(--s3) 60%,transparent);font-size:12px}
+tbody tr{cursor:pointer;transition:.15s}tbody tr:hover{background:color-mix(in srgb,var(--s3) 40%,transparent)}tbody tr.cn{background:color-mix(in srgb,var(--cy) 12%,transparent)}tbody tr.f{background:#38bdf81f;box-shadow:inset 3px 0 var(--accent)}
+tbody.nc tr{cursor:default}
+td.c,th.c{text-align:center;width:38px}td.r{text-align:right}
+.chip{display:inline-flex;gap:5px;align-items:center;padding:1px 9px;border-radius:99px;font-size:10px;font-weight:600;border:1px solid;margin-left:8px;vertical-align:1px}
+.chip.cn{color:var(--c-cy);background:#06b6d433;border-color:#06b6d466}.chip.bs{color:var(--c-gn);background:#10b98126;border-color:#10b9814d}.chip.sv{color:var(--good);background:#10b9811a;border-color:#10b98140}.chip.ac{color:var(--c-sk);background:#0ea5e91a;border-color:#0ea5e940}
+.chip.cn:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cy);animation:ping 1.4s infinite}
+.hid{color:var(--dim);font-style:italic;font-family:var(--mono)}
+.cp{background:none;border:0;padding:0;color:var(--muted);cursor:pointer;display:flex;gap:6px;align-items:center;font-size:12px}.cp:hover{color:var(--c-cy)}.cp .ic{width:12px;height:12px;opacity:0}.cp:hover .ic{opacity:1}
+.sg{display:flex;align-items:center;gap:8px;min-width:130px}.mt{width:80px;height:8px;border-radius:9px;background:color-mix(in srgb,var(--s3) 80%,transparent);padding:2px;overflow:hidden}.mt i{display:block;height:100%;border-radius:9px;box-shadow:0 0 8px currentColor;transition:width .5s}
+.bd{padding:1px 8px;border-radius:6px;font:500 10px var(--mono);background:var(--s3);color:var(--soft)}.bd.b5{background:var(--b5bg);color:var(--c-in);border:1px solid #6366f14d}
+.ib{border:0;background:none;color:var(--muted);padding:6px;border-radius:8px;cursor:pointer}.ib:hover{background:var(--s3);color:var(--c-cy)}
+.tf{padding:13px 16px;background:color-mix(in srgb,var(--w) 63%,transparent);border-top:1px solid color-mix(in srgb,var(--s3) 80%,transparent);display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+.tf .lg2{display:flex;flex-wrap:wrap;gap:16px;align-items:center}.tf i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.tf button{background:none;border:0;color:var(--cy);cursor:pointer;font-weight:500}.tf button:hover{color:var(--c-cy)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+/* charts */
+.cg{margin-top:12px}.lg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.lg span{font-size:12px;padding:1px 9px;border-radius:99px;border:1px solid var(--line)}
+.sc{cursor:pointer}.sc i{color:var(--muted);font-style:normal}.sc:hover{background:var(--line)}
+.cv{transition:opacity .15s,fill-opacity .15s;cursor:pointer}.gc:has(.cv:hover) .cv:not(:hover){opacity:.12}.cv:hover{fill-opacity:.5;stroke-width:3.5}
+#tip{position:fixed;pointer-events:none;background:var(--s);border:1px solid var(--bd);padding:5px 10px;border-radius:8px;font-size:12px;display:none;z-index:60;box-shadow:0 4px 14px #0008}
+.rec{padding:10px 14px;border-radius:12px;background:#10b98124;border:1px solid #10b98140;margin-bottom:10px;color:var(--c-gn)}
+.row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}.row .l{width:56px;text-align:right;color:var(--muted);font-family:var(--mono)}.row .b{height:14px;border-radius:4px;min-width:3px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.rc{padding:16px;border-radius:12px;background:color-mix(in srgb,var(--s) 80%,transparent);border:1px solid var(--line)}.rc>h3{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px;font-size:13px}
+.info{padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--s) 60%,transparent);border:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;gap:10px;align-items:flex-start}.info .ic{color:var(--cy);margin-top:2px}
+.tg{display:inline-flex;margin-right:6px}.tag{font:600 10px var(--mono);padding:1px 7px;border-radius:5px}.tag.gw{background:#10b98133;color:var(--c-gn)}.tag.me{background:#06b6d433;color:var(--c-cy)}
+.m2{font-size:11px;color:var(--muted);line-height:1.4;white-space:normal;max-width:230px;margin-top:2px}
+.tag.ok{background:#10b98133;color:var(--c-gn)}.tag.md{background:#fbbf2426;color:var(--mid)}
+.pcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.pcd{padding:14px;border-radius:12px;background:color-mix(in srgb,var(--s) 80%,transparent);border:1px solid var(--line);border-left:4px solid var(--pc)}
+.pcd .n{font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center;justify-content:space-between}.pcd .v{font:800 26px var(--mono);margin:2px 0 6px}
+.pcd .g{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font:11px var(--mono);color:var(--muted)}.pcd .g b{color:var(--text);font-weight:600}
+.dg{padding:12px 16px;border-radius:12px;border:1px solid;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.dg.good{color:var(--good);background:#10b9811a;border-color:#10b98140}.dg.warn{color:var(--mid);background:#fbbf2418;border-color:#fbbf2440}.dg.bad{color:var(--bad);background:#f43f5e14;border-color:#f43f5e40}.dg.muted{color:var(--muted);background:transparent;border-color:var(--line)}
+.dg span{color:var(--text)}
+.dv{display:flex;gap:10px;align-items:center;font-weight:600;color:var(--text)}.dv .ic{color:var(--muted);width:17px;height:17px}.dv.gw .ic{color:var(--good)}
+/* toast + modal */
+#toast{position:fixed;top:18px;right:18px;z-index:70;display:flex;gap:10px;align-items:center;padding:11px 16px;border-radius:12px;background:var(--s);border:1px solid #06b6d466;color:var(--c-cy);box-shadow:0 20px 40px #000a;transform:translateY(-140%);opacity:0;transition:.3s;pointer-events:none;max-width:420px;font-weight:500}
+#toast.on{transform:none;opacity:1}#toast .ic{color:var(--cy)}
+#modal{position:fixed;inset:0;z-index:65;background:#000b;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}#modal.on{display:flex}
+.mb{width:100%;max-width:520px;padding:22px;border-color:var(--bd)}.mb .mh{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mg div{padding:11px;border-radius:12px;background:color-mix(in srgb,var(--s) 90%,transparent);border:1px solid var(--line);min-width:0}.mg span{display:block;font-size:11px;color:var(--muted)}.mg b{font:700 13px var(--mono);word-break:break-all}
+@media(max-width:900px){.hg{grid-template-columns:1fr}.hs{border-right:0;border-bottom:1px solid color-mix(in srgb,var(--s3) 80%,transparent);padding:0 0 18px}}
+</style></head><body>
+<div id="toast"><i data-lucide="info" class="ic"></i><span id="toastMsg"></span></div>
+<div class="wrap">
+
+<header class="glass hdr">
+  <div class="brand"><div class="logo"><i data-lucide="wifi" class="ic"></i></div>
+    <div><h1>WiFi Analyzer <span class="pro">PRO</span><span class="live" id="live"><i></i><span id="liveT">Live Scan</span></span></h1>
+      <div class="meta"><span><i data-lucide="clock" class="ic"></i> Cập nhật lúc: <b id="ts">—</b></span><span>•</span>
+      <span><i data-lucide="monitor" class="ic"></i> <b id="os">—</b></span><span>•</span>
+      <span><i data-lucide="radio-receiver" class="ic"></i> Phát hiện: <b class="cy" id="apc">0 AP</b></span></div></div></div>
+  <div class="ctl">
+    <div class="pills" id="themes" title="Chọn nền giao diện"><button class="pl" data-th="dark"><i data-lucide="moon" class="ic"></i>Tối</button><button class="pl" data-th="light"><i data-lucide="sun" class="ic"></i>Sáng</button><button class="pl" data-th="auto"><i data-lucide="monitor" class="ic"></i>Tự động</button></div>
+    <button class="btn p" id="scanBtn"><i data-lucide="refresh-cw" class="ic" id="scanIc"></i>Quét ngay</button>
+    <button class="btn" id="bestBtn"><i data-lucide="zap" class="ic am"></i>Chọn mạng mạnh nhất</button>
+    <select id="auto"><option value="0">Tạm dừng tự quét</option><option value="2">Chu kỳ 2 giây</option><option value="3" selected>Chu kỳ 3 giây</option><option value="5">Chu kỳ 5 giây</option><option value="10">Chu kỳ 10 giây</option></select>
+    <button class="btn" id="csvBtn"><i data-lucide="download" class="ic cb"></i>Xuất CSV</button>
+  </div>
+</header>
+
+<section class="glass hero on" id="hero" style="display:block">
+  <div class="hg">
+    <div class="hs">
+      <div class="sigbox" id="sigBox"><b id="mDbm">—</b><small>dBm</small></div>
+      <div><div class="qr"><span class="qp" id="mQ">—</span><span class="mono muted" id="mPct"></span></div>
+        <h2 id="mName">Chọn một mạng trong bảng</h2><div class="sub2" id="mSub"></div></div>
+    </div>
+    <div>
+      <div class="specs" id="mKv"></div>
+      <div class="ha"><div id="heroBtns" hidden>
+          <button class="btn sm dn" id="xBtn"><i data-lucide="power" class="ic"></i>Ngắt kết nối</button>
+          <button class="btn sm" id="devBtn"><i data-lucide="users" class="ic cb"></i>Xem thiết bị trong mạng</button>
+          <button class="btn sm" id="specBtn"><i data-lucide="network" class="ic ib2"></i>Thông số IP / Gateway</button></div>
+        <span class="note">*Khoảng cách ước lượng từ cường độ tín hiệu (mô hình FSPL), sai số lớn</span></div>
+    </div>
+  </div>
+  <div class="act" id="act" hidden>
+    <div id="actT"></div>
+    <div class="row2">
+      <input id="pw" type="password" placeholder="Mật khẩu WiFi" autocomplete="off" hidden>
+      <label id="pwL" hidden><input type="checkbox" id="pwChk"> hiện mật khẩu</label>
+      <button class="btn p" id="cBtn"><i data-lucide="plug-zap" class="ic"></i>Kết nối mạng này</button>
+      <button class="btn" id="vBtn">Chỉ xem, không kết nối</button>
+    </div>
+    <div class="msg muted" id="hint"></div><div class="msg" id="actMsg"></div>
+  </div>
+</section>
+
+<div class="tb">
+  <div class="sr"><i data-lucide="search" class="ic"></i><input id="q" type="text" placeholder="Tìm theo SSID, BSSID, chuẩn Wi-Fi hoặc loại bảo mật..."></div>
+  <div class="pills" id="bands"><button class="pl on" data-band="">Mọi băng tần</button><button class="pl" data-band="2.4 GHz">2.4 GHz</button><button class="pl" data-band="5 GHz">5 GHz</button><button class="pl" data-band="6 GHz">6 GHz</button></div>
+</div>
+
+<div class="stack">
+<div class="tabs" id="tabs">
+  <button class="tab on" data-t="list"><i data-lucide="list" class="ic"></i>Danh sách AP (<span id="cnt">0</span>)</button>
+  <button class="tab" data-t="graph"><i data-lucide="activity" class="ic"></i>Đồ thị phổ kênh</button>
+  <button class="tab" data-t="time"><i data-lucide="line-chart" class="ic"></i>Tín hiệu theo thời gian</button>
+  <button class="tab" data-t="ping"><i data-lucide="timer" class="ic"></i>Độ trễ (Ping)</button>
+  <button class="tab" data-t="rate"><i data-lucide="award" class="ic"></i>Xếp hạng & Tối ưu kênh</button>
+  <button class="tab" data-t="dev"><i data-lucide="hard-drive" class="ic"></i>Thiết bị trong mạng (LAN)</button>
+</div>
+
+<section id="list" class="on"><div class="glass" style="overflow:hidden">
+  <div class="tw"><table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table></div>
+  <div class="empty" id="empty" hidden></div>
+  <div class="tf"><div class="lg2"><span>Hiển thị: <b id="shown" style="color:var(--text)">0</b> AP</span>
+    <span><i style="background:var(--good)"></i>Tốt (≥ -60 dBm)</span><span><i style="background:var(--mid)"></i>Trung bình (-61 → -75)</span><span><i style="background:var(--bad)"></i>Yếu (&lt; -75)</span></div>
+    <button id="copyAll">Copy tất cả BSSID</button></div>
+</div></section>
+
+<section id="graph"><div class="glass pad stack">
+  <div class="hd"><div><h3><i data-lucide="radio" class="ic"></i>Phổ tần số WiFi (độ chồng lấn kênh)</h3><p>Rê chuột để xem nhanh, bấm vào đường cong hoặc tên SSID để xem chi tiết; nét đậm = mạng bạn đang dùng.</p></div>
+    <div class="pills"><button class="pl on" data-sp="24">2.4 GHz</button><button class="pl" data-sp="5">5 GHz</button></div></div>
+  <div id="sp24"><div class="box"><div id="g24" class="gc"></div></div><div id="l24"></div></div>
+  <div id="sp5" hidden><div class="box"><div id="g5" class="gc"></div></div><div id="l5"></div></div>
+  <div class="info"><i data-lucide="info" class="ic"></i><span>Kênh 2.4 GHz không chồng lấn: <b style="color:var(--good)" class="mono">1, 6, 11</b>. Với 5 GHz chỉ hiện các kênh đang có mạng. Trục Y: cường độ tín hiệu (dBm).</span></div>
+</div></section>
+
+<section id="time"><div class="glass pad stack">
+  <div class="hd"><div><h3><i data-lucide="trending-up" class="ic"></i>Biến thiên tín hiệu theo thời gian thực</h3><p>Tick ô vuông trong bảng để thêm/bớt mạng cần theo dõi.</p></div><select id="tw" title="Khoảng thời gian hiển thị"><option value="60">1 phút gần nhất</option><option value="120" selected>2 phút gần nhất</option><option value="300">5 phút gần nhất</option><option value="600">10 phút gần nhất</option></select></div>
+  <div class="box"><div id="tg"></div></div><div class="lg" id="tl"></div>
+</div></section>
+
+<section id="ping"><div class="glass pad stack">
+  <div class="hd"><div><h3><i data-lucide="timer" class="ic"></i>Độ trễ, jitter và mất gói (ping thật)</h3><p>Ping tới router và ra internet mỗi 2 giây — số đo thật, giúp biết mạng chậm do WiFi hay do đường ra ngoài.</p></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <input id="pcustom" type="text" placeholder="Thêm đích (vd: google.com)" style="width:210px" maxlength="253">
+      <button class="btn sm" id="pApply">Thêm đích</button>
+      <button class="btn p sm" id="pToggle">Bắt đầu đo</button>
+      <button class="btn sm" id="pReset">Xoá lịch sử</button></div></div>
+  <div id="pDiag"></div>
+  <div class="pcs" id="pCards"></div>
+  <div class="box"><div id="pChart"></div></div><div class="lg" id="pLg"></div>
+  <div class="info"><i data-lucide="info" class="ic"></i><span><b>Độ trễ</b>: thời gian gói tin đi và về (càng thấp càng tốt). <b>Jitter</b>: mức dao động giữa các lần ping (cao = game/gọi video bị giật). <b>Mất gói</b>: % gói không có phản hồi. Router có thể trả lời ping chậm hơn thực tế vì ưu tiên thấp, nên hãy xem xu hướng chứ đừng soi từng mili-giây. Phần “Chẩn đoán” chỉ là gợi ý theo ngưỡng thông thường, không phải kết luận chắc.</span></div>
+</div></section>
+
+<section id="rate"><div class="glass pad stack">
+  <div><h3><i data-lucide="check-circle" class="ic" style="color:var(--good)"></i>Xếp hạng độ sạch của kênh</h3><p class="muted" style="margin:2px 0 0;font-size:12px">Giúp chọn kênh tốt nhất cho router/AP, tránh nhiễu co-channel và adjacent-channel. Tính từ các AP đang quét được.</p></div>
+  <div class="grid2"><div class="rc"><h3 style="color:var(--c-cy)">Băng tần 2.4 GHz</h3><div id="r24"></div></div><div class="rc"><h3 style="color:var(--c-in)">Băng tần 5 GHz</h3><div id="r5"></div></div></div>
+</div></section>
+
+<section id="dev"><div class="glass pad stack">
+  <div class="hd"><div><h3><i data-lucide="laptop" class="ic" style="color:#818cf8"></i>Thiết bị cùng mạng LAN</h3><p id="dSub">Hãy kết nối một mạng WiFi trước.</p></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn sm" id="dScan" style="background:#4f46e54d;border-color:#6366f166;color:var(--c-in)"><i data-lucide="search" class="ic"></i>Quét nhanh</button><button class="btn sm" id="dDeep" title="Hỏi thêm mDNS, UPnP, cổng mở và trang web của từng thiết bị (mất thêm khoảng 5–10 giây)"><i data-lucide="scan-search" class="ic cb"></i>Quét sâu (nhận diện model)</button></div></div>
+  <div id="dDist"></div>
+  <div class="box tw" style="padding:0"><table><thead><tr><th>Thiết bị</th><th>Địa chỉ IP</th><th>MAC</th><th>Hãng (OUI)</th><th>Nhận diện</th><th>Chi tiết</th><th>Ghi chú</th></tr></thead><tbody id="dBody" class="nc"></tbody></table></div>
+  <div class="info"><i data-lucide="info" class="ic"></i><span><b>Quét nhanh</b> chỉ đoán loại thiết bị từ hãng và tên máy. <b>Quét sâu</b> hỏi thêm từng thiết bị trong mạng của bạn: dịch vụ mà nó tự công bố (mDNS, UPnP), vài cổng thông dụng và trang web đăng nhập; nhãn “xác nhận” nghĩa là có bằng chứng trực tiếp, “theo cổng” chỉ là suy luận từ cổng mở. Thiết bị đang ngủ hoặc chặn phản hồi có thể không hiện — quét lại vài lần cho chắc. Chỉ quét mạng của bạn hoặc mạng bạn được phép dùng.<br>Khoảng cách chỉ ước lượng được cho router/AP (từ tín hiệu); máy tính thường không đo được tín hiệu của từng thiết bị khác.</span></div>
+</div></section>
+</div>
+
+<div id="modal"><div class="glass mb">
+  <div class="mh"><h3><i data-lucide="cpu" class="ic"></i>Thông số IP / Gateway</h3><button class="ib" id="mClose"><i data-lucide="x" class="ic"></i></button></div>
+  <div class="mg" id="mGrid"></div><div class="msg muted" id="mNote"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn sm" id="mClose2">Đóng</button></div>
+</div></div>
+</div>
+<div id="tip"></div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const icons=()=>{try{window.lucide&&lucide.createIcons()}catch(e){}};
+const I=(n,c)=>`<i data-lucide="${n}" class="ic ${c||""}"></i>`;
+const COLS=[["_s",""],["ssid","SSID / Tên mạng"],["bssid","BSSID (MAC)"],["dbm","Cường độ tín hiệu"],["dbm","dBm"],["channel","Kênh"],["band","Băng tần"],["security","Bảo mật"],["radio","Chuẩn"],["_d","Khoảng cách*"],["_a",""]];
+let data=[],hist={},sel=new Set(),focus=null,sk="dbm",sd=-1,timer=null,busy=false,first=true;
+let dismissed=false,lastFocus=null,connBusy=false,lastDev=null,devBusy=false,devT=null,devPoll=0,bandF="",specBand="24",toastT=null;
+const col=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))%360;return`hsl(${h} 70% 52%)`};
+const fq=n=>{const b=n.band||"";return b[0]=="2"?2407+5*n.channel:b[0]=="6"?5950+5*n.channel:5000+5*n.channel};
+const dist=n=>Math.pow(10,(27.55-20*Math.log10(fq(n))+Math.abs(n.dbm))/20);
+const fd=d=>d<1?"<1 m":d<100?"~"+d.toFixed(0)+" m":">100 m";
+const qual=d=>d>=-50?["Xuất sắc","var(--good)"]:d>=-60?["Tốt","var(--good)"]:d>=-70?["Khá","var(--mid)"]:d>=-80?["Yếu","var(--bad)"]:["Rất yếu","var(--bad)"];
+const secq=s=>/wep|open|none|^--$|^$/i.test(s||"")?["var(--bad)"]:/wpa3/i.test(s)?["var(--good)"]:["var(--mid)"];
+const isOpen=s=>/open|none|^--$|^$/i.test((s||"").trim());
+const id=n=>(n.bssid||"").toLowerCase();
+const best=()=>data.filter(n=>n.ssid&&n.ssid!=="<hidden>"&&n.dbm!==undefined).sort((a,b)=>b.dbm-a.dbm)[0];
+const post=(u,b)=>fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}).then(r=>r.json());
+
+function toast(m){$("toastMsg").textContent=m;$("toast").classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>$("toast").classList.remove("on"),3200)}
+function copyText(t,m){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(m||"Đã sao chép"),()=>{
+ const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast(m||"Đã sao chép")}catch(e){toast("Không thể sao chép")}a.remove()})}
+
+function vis(){const q=$("q").value.trim().toLowerCase();
+ return data.filter(n=>(!bandF||n.band===bandF)&&(!q||[n.ssid,n.bssid,n.security,n.radio].join(" ").toLowerCase().includes(q)));}
+
+function head(){const tr=$("head");tr.innerHTML="";
+ COLS.forEach(([k,l],i)=>{const th=document.createElement("th");const sortable=k[0]!="_";
+  if(i==0){th.className="c";const cb=document.createElement("input");cb.type="checkbox";cb.title="Chọn / bỏ chọn tất cả để vẽ đồ thị";
+   cb.onchange=()=>{vis().forEach(n=>cb.checked?sel.add(id(n)):sel.delete(id(n)));render()};th.appendChild(cb)}
+  else{th.textContent=l+(sortable&&k===sk&&(k!=="dbm"||i===4)?(sd<0?" ▼":" ▲"):"");if(sortable){th.classList.add("s");if(k===sk)th.classList.add("on");
+   th.onclick=()=>{sk===k?sd*=-1:(sk=k,sd=/ssid|bssid|band|security|radio/.test(k)?1:-1);render()}}}
+  if(i==10)th.style.textAlign="right";tr.appendChild(th)});}
+
+function table(){head();const bb=best();
+ const rows=vis().sort((a,b)=>{const x=a[sk],y=b[sk];if(x===undefined)return 1;if(y===undefined)return-1;
+  return(typeof x=="number"&&typeof y=="number"?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}))*sd});
+ const body=$("body");body.innerHTML="";
+ rows.forEach(n=>{const tr=document.createElement("tr"),q=qual(n.dbm)[1],hid=n.ssid==="<hidden>";
+  tr.className=(id(n)===focus?"f ":"")+(n.connected?"cn":"");
+  tr.onclick=()=>{focus=id(n);dismissed=false;render()};
+  const chips=(bb&&id(bb)===id(n)?'<span class="chip bs">mạnh nhất</span>':"")+(n.connected?'<span class="chip cn">đang kết nối</span>':"")+(n.saved&&!n.connected?'<span class="chip sv">đã lưu</span>':"");
+  tr.innerHTML=`<td class="c"><input type="checkbox" ${sel.has(id(n))?"checked":""}></td>
+   <td><b class="${hid?"hid":""}" style="${hid?"":"color:var(--hi)"}">${esc(n.ssid)}</b>${chips}</td>
+   <td><button class="cp mono" title="Bấm để copy">${esc(n.bssid)}${I("copy")}</button></td>
+   <td><div class="sg"><div class="mt"><i style="width:${n.signal_pct||0}%;background:${q};color:${q}"></i></div><span class="mono" style="color:${q};font-weight:600">${n.signal_pct??""}%</span></div></td>
+   <td class="mono" style="color:${q};font-weight:700">${esc(n.dbm)}</td><td class="mono cy" style="font-weight:600">${esc(n.channel)}</td>
+   <td><span class="bd ${(n.band||"")[0]=="5"?"b5":""}">${esc(n.band)}</span></td>
+   <td style="color:${secq(n.security)[0]}">${esc(n.security)}</td><td class="mono sk">${esc(n.radio)}</td>
+   <td class="mono" style="color:var(--soft)">${n.dbm!==undefined&&n.channel?fd(dist(n)):""}</td>
+   <td class="r"><button class="ib" title="Chọn mạng này / kết nối">${I("plug-zap")}</button></td>`;
+  const cb=tr.querySelector("input");cb.onclick=e=>{e.stopPropagation();cb.checked?sel.add(id(n)):sel.delete(id(n));timeG()};
+  tr.querySelector(".cp").onclick=e=>{e.stopPropagation();copyText(n.bssid,"Đã copy BSSID")};
+  tr.querySelector(".ib").onclick=e=>{e.stopPropagation();focus=id(n);dismissed=false;render();scrollTo({top:0,behavior:"smooth"})};
+  body.appendChild(tr)});
+ $("shown").textContent=rows.length;$("cnt").textContent=rows.length;
+ const e=$("empty");e.hidden=rows.length>0;if(!rows.length)e.textContent=data.length?"Không có mạng nào khớp bộ lọc.":"Chưa có dữ liệu.";}
+
+function meter(){const n=data.find(x=>id(x)===focus)||data.find(x=>x.connected)||best();
+ if(!n){$("heroBtns").hidden=true;return}
+ const q=qual(n.dbm),sp=(l,v,c)=>`<div class="spec"><span>${l}</span><b style="color:${c||"var(--hi)"}" title="${esc(v)}">${esc(v)}</b></div>`;
+ $("mDbm").textContent=n.dbm;$("sigBox").style.setProperty("--qc",q[1]);
+ $("mQ").textContent=q[0];$("mQ").style.color=q[1];$("mPct").textContent=(n.signal_pct??"")+"%";
+ $("mName").innerHTML=esc(n.ssid)+I(isOpen(n.security)?"unlock":"lock");
+ $("mSub").innerHTML=n.connected?`<i class="dot"></i> ${n.saved?"Đã lưu trên máy • ":""}Đang kết nối`:(n.saved?"Đã lưu trên máy":"Chưa kết nối");
+ $("mKv").innerHTML=sp("Kênh","CH "+n.channel,"var(--cy)")+sp("Băng tần",n.band||"—")+sp("Bảo mật",n.security||"Open",secq(n.security)[0])
+  +sp("Chuẩn Wi-Fi",n.radio||"—","var(--c-sk)")+sp("Khoảng cách*",n.channel?fd(dist(n)):"—","var(--text)")
+  +`<div class="spec"><span>BSSID</span><button id="bsCp" title="Bấm để copy">${esc((n.bssid||"").length>14?n.bssid.slice(0,8)+"..:"+n.bssid.slice(-2):n.bssid)}${I("copy")}</button></div>`;
+ $("bsCp").onclick=()=>copyText(n.bssid,"Đã copy BSSID");
+ $("heroBtns").hidden=!n.connected;}
+
+function setMsg(t,c){const m=$("actMsg");m.textContent=t;m.className="msg "+(c||"")}
+function act(){const box=$("act"),n=data.find(x=>id(x)===focus);
+ if(focus!==lastFocus){lastFocus=focus;$("pw").value="";setMsg("")}
+ box.hidden=!n||dismissed||n.connected;if(box.hidden)return;
+ const ent=/enterprise/i.test(n.security||""),hid=n.ssid==="<hidden>",open=isOpen(n.security);
+ $("actT").innerHTML=`<b style="color:var(--hi)">${esc(n.ssid)}</b> <span class="muted mono">· ${esc(n.security||"Open")} · ${n.dbm} dBm · ${n.channel?fd(dist(n)):"—"}</span>`+(n.saved?' <span class="chip sv">đã lưu trên máy</span>':"");
+ const needPw=!open&&!ent&&!hid;$("pw").hidden=!needPw;$("pwL").hidden=!needPw;
+ $("pw").placeholder=n.saved?"Mật khẩu (để trống = dùng mật khẩu đã lưu)":"Mật khẩu WiFi";
+ $("cBtn").disabled=ent||hid||connBusy;
+ $("hint").textContent=ent?"Mạng doanh nghiệp (802.1X) chưa được hỗ trợ kết nối từ tool này.":hid?"Mạng ẩn chưa được hỗ trợ.":open?"Mạng mở: không mã hoá, người khác có thể xem lưu lượng của bạn.":"";}
+
+let YMAX=-30;
+function chart(aps,xOf,x0,x1,hw,ticks){const W=900,H=300,L=40,R=10,T=14,B=26,X=v=>L+(v-x0)/(x1-x0)*(W-L-R),Y=d=>T+(YMAX-d)/(YMAX+100)*(H-T-B);
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+ for(let d=YMAX;d>=-100;d-=10)s+=`<line x1="${L}" x2="${W-R}" y1="${Y(d)}" y2="${Y(d)}" stroke="var(--line)"/><text x="${L-4}" y="${Y(d)+4}" text-anchor="end" fill="var(--muted)" font-size="10">${d}</text>`;
+ ticks.forEach(([v,l])=>s+=`<text x="${X(v)}" y="${H-8}" text-anchor="middle" fill="var(--muted)" font-size="12">${l}</text>`);
+ const g={};aps.forEach(n=>{const k=n.ssid+"|"+n.channel,o=g[k];if(!o)g[k]={n,c:1,conn:!!n.connected};else{o.c++;o.conn=o.conn||!!n.connected;if(n.dbm>o.n.dbm)o.n=n}});
+ const list=Object.values(g).sort((a,b)=>a.n.dbm-b.n.dbm);
+ list.forEach(o=>{const n=o.n,c=xOf(n),b=Y(-100),p=Y(Math.max(-100,n.dbm)),k=col(n.ssid);
+  s+=`<path class="cv" data-b="${esc(id(n))}" data-t="${esc(n.ssid+" · Kênh "+n.channel+" · "+n.dbm+" dBm"+(o.c>1?" · "+o.c+" AP":"")+" · "+n.bssid)}" d="M${X(c-hw)} ${b} Q${X(c)} ${2*p-b} ${X(c+hw)} ${b}Z" fill="${k}" fill-opacity=".22" stroke="${k}" stroke-width="${o.conn?3.5:2}"/>`});
+ const ch={};list.forEach(o=>{const c=xOf(o.n);(ch[c]=ch[c]||[]).push(o)});
+ const lab=Object.entries(ch).map(([c,a])=>{a.sort((x,y)=>y.n.dbm-x.n.dbm);return{x:X(+c),y:Y(a[0].n.dbm),a}}).sort((p,q)=>p.x-q.x),used=[];
+ lab.forEach(l=>{let y=l.y-6;while(used.some(u=>Math.abs(u.x-l.x)<100&&Math.abs(u.y-y)<30))y-=30;y=Math.max(y,24);used.push({x:l.x,y});
+  const nm=l.a[0].n.ssid,more=l.a.length-1,tot=l.a.reduce((t,o)=>t+o.c,0);
+  s+=`<text text-anchor="middle" x="${l.x}" y="${y-12}" font-size="12" font-weight="600" fill="var(--text)">${esc(nm.length>20?nm.slice(0,19)+"…":nm)}</text><text text-anchor="middle" x="${l.x}" y="${y}" font-size="11" fill="var(--muted)">${tot} AP${more?" · +"+more+" SSID":""}</text>`});
+ return s+"</svg>";}
+const C5=[36,40,44,48,52,56,60,64,100,104,108,112,116,120,124,128,132,136,140,144,149,153,157,161,165];
+function chans5(){return[...new Set([...C5,...data.filter(n=>(n.band||"")[0]=="5").map(n=>+n.channel)])].sort((a,b)=>a-b)}
+function chList(aps,el){const g={};aps.forEach(n=>(g[n.channel]=g[n.channel]||[]).push(n));
+ el.innerHTML=Object.keys(g).sort((a,b)=>a-b).map(c=>{const a=g[c].sort((x,y)=>y.dbm-x.dbm),m={};a.forEach(n=>(m[n.ssid]=m[n.ssid]||[]).push(n));
+  return`<div class="cg"><b>Kênh ${c}</b> <span class="muted">· ${a.length} AP · ${Object.keys(m).length} SSID</span><div class="lg">`+Object.values(m).map(l=>{const n=l[0];
+   return`<span class="sc" data-b="${esc(id(n))}" style="border-color:${col(n.ssid)}">${esc(n.ssid)} <i>${n.dbm} dBm${l.length>1?" ×"+l.length:""}</i></span>`}).join("")+`</div></div>`}).join("");}
+function graphs(){const v=vis().filter(n=>n.dbm!==undefined&&n.channel);
+ YMAX=Math.max(-70,Math.min(-30,Math.ceil((Math.max(-100,...v.map(n=>n.dbm))+15)/10)*10));
+ const a=v.filter(n=>(n.band||"")[0]=="2");$("g24").innerHTML=a.length?chart(a,n=>+n.channel,-1.5,15.5,2.2,Array.from({length:13},(_,i)=>[i+1,i+1])):'<div class="empty">Không có mạng 2.4 GHz.</div>';chList(a,$("l24"));
+ const b=v.filter(n=>(n.band||"")[0]=="5"),cs=[...new Set(b.map(n=>+n.channel))].sort((x,y)=>x-y);
+ $("g5").innerHTML=b.length?chart(b,n=>cs.indexOf(+n.channel),-1,cs.length,.45,cs.map((c,i)=>[i,c])):'<div class="empty">Không có mạng 5 GHz.</div>';chList(b,$("l5"));
+ $("sp24").hidden=specBand!=="24";$("sp5").hidden=specBand!=="5";}
+const HMAX=600000;
+function hpush(i,t,v){const a=hist[i]=hist[i]||[];a.push([t,v]);while(a.length&&a[0][0]<t-HMAX)a.shift()}
+function timeG(){const ids=[...sel].filter(i=>hist[i]&&hist[i].length);
+ const W=900,H=300,L=40,R=16,T=14,B=28,now=Date.now(),win=(+$("tw").value||120)*1000,t0=now-win;
+ const X=t=>L+(t-t0)/win*(W-L-R),Y=d=>T+(-30-Math.max(-100,Math.min(-30,d)))/70*(H-T-B);
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="100%"><defs><clipPath id="tclip"><rect x="${L}" y="${T-4}" width="${W-L-R}" height="${H-T-B+8}"/></clipPath></defs>`;
+ for(let d=-30;d>=-100;d-=10)s+=`<line x1="${L}" x2="${W-R}" y1="${Y(d)}" y2="${Y(d)}" stroke="var(--line)"/><text x="${L-6}" y="${Y(d)+4}" text-anchor="end" fill="var(--muted)" font-size="10">${d}</text>`;
+ const step=win/6000>=60?60:win/6000>=20?20:10;
+ for(let k=0;k*step*1000<=win;k++){const t=now-k*step*1000,x=X(t),lb=k==0?"bây giờ":"-"+(k*step>=60&&k*step%60==0?k*step/60+"p":k*step+"s");
+  s+=`<line x1="${x}" x2="${x}" y1="${T}" y2="${H-B}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${x}" y="${H-8}" text-anchor="${k==0?"end":"middle"}" fill="var(--muted)" font-size="10">${lb}</text>`}
+ let lg="";const dots=ids.length<=8;
+ ids.forEach(i=>{const n=data.find(x=>id(x)===i),k=col((n&&n.ssid)||i),pts=hist[i];let d="",pv=false,last=null,dd="";
+  pts.forEach(([t,v])=>{if(t<t0-5000)return;if(v==null){pv=false;return}
+   const x=X(t),y=Y(v);d+=(pv?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);pv=true;last=[x,y,v];
+   if(dots)dd+=`<circle class="cv" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${k}" stroke="${k}" stroke-width="6" stroke-opacity="0" data-t="${esc((n?n.ssid:"?")+" · "+v+" dBm · "+new Date(t).toLocaleTimeString())}"/>`});
+  s+=`<g clip-path="url(#tclip)"><path d="${d}" fill="none" stroke="${k}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dd}</g>`;
+  if(last)s+=`<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="${k}" stroke="var(--bg)" stroke-width="2"/>`;
+  const cur=pts[pts.length-1][1];
+  lg+=`<span style="border-color:${k}">${esc(n?n.ssid:"?")} · ${esc(i.slice(-5))} · <b class="mono">${cur==null?"mất sóng":cur+" dBm"}</b></span>`});
+ if(!ids.length)s+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--muted)" font-size="13">Chưa chọn mạng nào — tick ô vuông trong bảng để theo dõi</text>`;
+ $("tg").innerHTML=s+"</svg>";$("tl").innerHTML=lg||'<span class="muted" style="border:0">Chưa chọn mạng nào — tick ô vuông trong bảng.</span>';}
+
+function rate(el,chs,ovl,rec,cur){const aps=vis().filter(n=>n.dbm!==undefined&&n.channel);
+ const w=n=>Math.max(0,Math.min(1,(n.dbm+100)/60)),sc=chs.map(c=>aps.reduce((t,n)=>t+w(n)*ovl(c,+n.channel),0)),mx=Math.max(...sc,.001);
+ const cand=chs.map((c,i)=>[c,sc[i]]).filter(([c])=>rec.includes(c)).sort((a,b)=>a[1]-b[1])[0];
+ let h=cand?`<div class="rec">Khuyên dùng: <b>kênh ${cand[0]}</b> (ít nhiễu nhất trong số ${rec.join(", ")})${cur&&cur!=cand[0]?` — bạn đang dùng kênh ${cur}`:""}</div>`:"";
+ chs.forEach((c,i)=>{const st=Math.round(5-4*sc[i]/mx),k=sc[i]/mx;h+=`<div class="row"><span class="l">Ch ${c}</span><span class="b" style="width:${Math.max(.5,k*50)}%;background:${k<.34?"var(--good)":k<.67?"var(--mid)":"var(--bad)"}"></span><span style="color:var(--mid)">${"★".repeat(st)}${"☆".repeat(5-st)}</span><span class="muted">${cand&&cand[0]==c?" ✓ nên dùng":""}${c==cur?" · hiện tại":""}</span></div>`});
+ el.innerHTML=aps.length?h:'<span class="muted">Chưa có dữ liệu.</span>';}
+function rates(){const cn=data.find(n=>n.connected),cc=cn?+cn.channel:null;
+ rate($("r24"),[1,2,3,4,5,6,7,8,9,10,11,12,13],(c,a)=>Math.max(0,1-Math.abs(c-a)/5),[1,6,11],cn&&(cn.band||"")[0]=="2"?cc:null);
+ rate($("r5"),chans5().filter(c=>C5.includes(c)),(c,a)=>c==a?1:0,[36,40,44,48,149,153,157,161],cn&&(cn.band||"")[0]=="5"?cc:null);}
+
+function render(){table();meter();graphs();timeG();rates();act();if(lastDev)devRender();icons();}
+
+async function scan(){if(busy)return;busy=true;$("scanBtn").disabled=true;$("scanIc").classList.add("spin");
+ try{const j=await(await fetch("/api/scan")).json();
+  if(j.ok){data=j.networks.filter(n=>n.bssid);const seen=new Set();
+   const now=Date.now();
+   data.forEach(n=>{const i=id(n);seen.add(i);hpush(i,now,n.dbm??null)});
+   Object.keys(hist).forEach(i=>{if(!seen.has(i))hpush(i,now,null)});
+   if(first&&data.length){first=false;data.filter(n=>n.connected).concat([...data].sort((a,b)=>b.dbm-a.dbm)).slice(0,5).forEach(n=>sel.add(id(n)))}
+   $("ts").textContent=j.time;$("os").textContent=j.os;$("apc").textContent=data.length+" AP";$("apc").style.color=""}
+  else{$("ts").textContent="lỗi";toast("Lỗi quét: "+j.error)}render()}
+ catch(e){toast("Không kết nối được server")}
+ busy=false;$("scanBtn").disabled=false;$("scanIc").classList.remove("spin");}
+function auto(){clearInterval(timer);const s=+$("auto").value;if(s>0)timer=setInterval(scan,s*1000);
+ $("live").classList.toggle("off",s==0);$("liveT").textContent=s>0?"Live Scan":"Tạm dừng";}
+
+/* ---------- kết nối ---------- */
+function setBusy(b){["cBtn","xBtn","vBtn","bestBtn"].forEach(i=>$(i).disabled=b)}
+function showTab(t){document.querySelectorAll(".tabs .tab,.stack>section").forEach(x=>x.classList.remove("on"));
+ document.querySelector('.tabs .tab[data-t="'+t+'"]').classList.add("on");$(t).classList.add("on");if(t==="dev")devEnter();if(t==="ping"){pingLoop();}else clearTimeout(pingTimer)}
+async function doConnect(){const n=data.find(x=>id(x)===focus);if(!n||connBusy)return;
+ connBusy=true;setBusy(true);setMsg("Đang kết nối… (tối đa khoảng 25 giây)");
+ try{const j=await post("/api/connect",{ssid:n.ssid,bssid:n.bssid,security:n.security,password:$("pw").value});
+  if(j.ok){$("pw").value="";lastDev=null;setMsg("");toast("Đã kết nối "+j.ssid+" · IP "+j.ip);await scan();showTab("dev")}
+  else setMsg("Lỗi: "+j.error,"err")}
+ catch(e){setMsg("Lỗi: "+e,"err")}
+ connBusy=false;setBusy(false);act();}
+async function doDisconnect(){if(connBusy)return;connBusy=true;setBusy(true);
+ try{const j=await post("/api/disconnect",{});lastDev=null;$("dBody").innerHTML="";$("dDist").innerHTML="";$("dSub").textContent="Chưa kết nối mạng nào.";
+  toast(j.ok?"Đã ngắt kết nối.":"Lỗi: "+j.error);await scan()}
+ catch(e){toast("Lỗi: "+e)}
+ connBusy=false;setBusy(false);act();}
+
+/* ---------- đoán loại thiết bị từ tên máy + hãng (chỉ là gợi ý) ---------- */
+const BY_NAME=[
+ [/iphone|ipad|ipod/i,"iPhone / iPad"],[/macbook|imac|mac-?mini|\bmac\b/i,"Máy Mac"],
+ [/android|galaxy|redmi|xiaomi|oppo|vivo|realme|pixel|huawei|honor/i,"Điện thoại Android"],
+ [/desktop-|laptop|notebook|\bpc\b|-pc\b|win-/i,"Máy tính / laptop"],
+ [/print|epson|canon|brother|laserjet/i,"Máy in"],
+ [/ipc|cam|dvr|nvr|hikvision|dahua/i,"Camera / đầu ghi hình"],
+ [/^rap|^ap[-_ ]|[-_]ap\b|wifi|wlan/i,"Access Point WiFi"],
+ [/\btv\b|bravia|roku|chromecast|firetv|androidtv/i,"TV / thiết bị xem phim"],
+ [/esp[-_]?\d|tuya|shelly|sonoff/i,"Thiết bị IoT (ổ cắm, đèn…)"],[/raspberry|raspi/i,"Raspberry Pi"]];
+const BY_VENDOR=[
+ [/hikvision|dahua|uniview|ezviz|imou|hanwha|reolink|vivotek|tiandy|kbvision|vantech|axis comm|hiseeu|lorex|amcrest/i,"Camera / đầu ghi hình"],
+ [/ruijie|ubiquiti|mikrotik|routerboard|cisco|aruba|ruckus|juniper|fortinet|zyxel|netgear|d-link|tenda|mercusys|engenius|cambium|draytek/i,"Thiết bị mạng (router / AP / switch)"],
+ [/tp-?link/i,"Router / AP / thiết bị thông minh (TP-Link)"],
+ [/huawei|honor/i,"Điện thoại hoặc router Huawei"],
+ [/apple/i,"iPhone / iPad / Mac / Apple TV"],[/samsung/i,"Điện thoại hoặc TV Samsung"],
+ [/xiaomi|oppo|vivo|oneplus|realme|motorola|nokia|zte/i,"Điện thoại (hoặc thiết bị thông minh)"],
+ [/google|nest/i,"Pixel / Chromecast / Nest"],[/amazon/i,"Echo / Kindle / Fire TV"],
+ [/espressif|tuya|shelly|sonoff|shenzhen.*(technology|electronic)/i,"Thiết bị IoT (ổ cắm, đèn, cảm biến…)"],
+ [/raspberry/i,"Raspberry Pi"],
+ [/intel|liteon|lite-on|azurewave|realtek|hon hai|foxconn|murata|qualcomm|mediatek|dell|lenovo|asustek|acer|microsoft|hewlett|hp inc|msi|gigabyte|ampak|broadcom/i,"Laptop / PC (card mạng)"],
+ [/lg elec|sony|tcl|hisense|panasonic|skyworth|vizio/i,"TV / thiết bị giải trí"],
+ [/canon|epson|brother|ricoh|xerox|kyocera|lexmark/i,"Máy in"],
+ [/nintendo|sony interactive|valve/i,"Máy chơi game"],[/sonos|bose|harman/i,"Loa thông minh"]];
+function guess(d){
+ if(d.self)return"Máy bạn đang dùng";if(d.gateway)return"Router / gateway";
+ if(d.ident&&d.ident.kind)return d.ident.kind;
+ if(d.vstate==="random")return"Điện thoại / laptop (MAC riêng tư)";
+ for(const[r,t]of BY_NAME)if(d.name&&r.test(d.name))return t;
+ for(const[r,t]of BY_VENDOR)if(d.vendor&&r.test(d.vendor))return t;
+ return"";}
+const DEVICON=[[/chromecast|google tv|airplay|tv|media/i,"tv"],[/nas|ổ mạng/i,"hard-drive"],[/homekit/i,"home"],[/camera|đầu ghi/i,"video"],[/access point|thiết bị mạng|router/i,"router"],[/điện thoại|iphone|android/i,"smartphone"],
+ [/laptop|máy tính|mac|pc/i,"laptop"],[/máy in/i,"printer"],[/tv|giải trí/i,"tv"],[/iot|raspberry/i,"cpu"],[/game/i,"gamepad-2"],[/loa/i,"speaker"]];
+
+/* ---------- thiết bị trong mạng ---------- */
+function devEnter(){if(!lastDev&&!devBusy)devScan();else devRender()}
+async function devScan(cached,deep){if(devBusy)return;devBusy=true;$("dScan").disabled=true;$("dDeep").disabled=true;
+ if(!cached){$("dSub").textContent=deep?"Đang quét sâu… (khoảng 15–25 giây, vui lòng chờ)":"Đang quét mạng… (khoảng 5–10 giây)";$("dSub").className=""}
+ try{const j=await(await fetch("/api/devices"+(cached?"?cached=1":deep?"?deep=1":""))).json();
+  if(j.ok)lastDev=j;else{lastDev=null;$("dBody").innerHTML="";$("dDist").innerHTML="";$("dSub").textContent="Lỗi: "+j.error}}
+ catch(e){$("dSub").textContent="Không kết nối được server"}
+ devBusy=false;$("dScan").disabled=false;$("dDeep").disabled=false;devRender();
+ clearTimeout(devT);if(lastDev&&lastDev.pending&&devPoll++<15)devT=setTimeout(()=>devScan(true),3000);else devPoll=0;}
+function devRender(){const j=lastDev;if(!j)return;const cur=data.find(n=>n.connected);
+ $("dSub").textContent=`${j.devices.length} thiết bị · mạng ${j.net} · IP của bạn ${j.ip} · router ${j.gateway||"?"} · quét lúc ${j.time}`;
+ $("dDist").innerHTML=cur?`<div class="info"><i data-lucide="radio" class="ic"></i><span>Khoảng cách tới router/AP “${esc(cur.ssid)}”: <b style="color:var(--hi)">${cur.channel?fd(dist(cur)):"—"}</b> <span class="muted">(ước lượng từ tín hiệu ${cur.dbm} dBm)</span></span></div>`:"";
+ const VS={random:"MAC ngẫu nhiên (Private Address)",pending:"đang tra…",unknown:"không rõ",self:"—"};
+ $("dBody").innerHTML=j.devices.map(d=>{const g=guess(d),ic=d.gateway?"shield-check":d.self?"monitor":(DEVICON.find(([r])=>r.test(g))||[0,"circle-help"])[1];
+  const tags=(d.self?'<span class="tag me">This device</span> ':"")+(d.gateway?'<span class="tag gw">Gateway</span>':"");
+  const id2=d.ident,conf=id2&&id2.kind?(id2.conf==="cao"?'<span class="tag ok">xác nhận</span>':'<span class="tag md">theo cổng</span>'):"";
+  return`<tr><td><div class="dv ${d.gateway?"gw":""}">${I(ic)}${esc(d.name||(id2&&id2.fname)||"(không rõ tên)")}</div></td><td class="mono cy">${esc(d.ip)}</td><td class="mono muted">${esc(d.mac||"—")}</td>
+   <td>${esc(d.vendor||VS[d.vstate]||"")}</td><td style="color:var(--soft)" title="${id2&&id2.kind?"Từ quét sâu":"Chỉ là đoán từ hãng/tên máy"}">${esc(g||"—")} ${conf}${id2&&id2.model?`<div class="m2">Model: ${esc(id2.model)}</div>`:""}</td>
+   <td><div class="m2">${id2&&id2.evidence.length?id2.evidence.map(esc).join("<br>"):"—"}</div></td><td>${tags}</td></tr>`}).join("");icons();}
+
+async function openSpec(){$("modal").classList.add("on");$("mGrid").innerHTML="";$("mNote").textContent="Đang đọc cấu hình mạng…";
+ try{const j=await(await fetch("/api/netinfo")).json();
+  if(!j.ok){$("mNote").textContent=j.error||"Không đọc được cấu hình.";return}
+  const mask=[0,1,2,3].map(i=>256-Math.pow(2,8-Math.max(0,Math.min(8,j.prefix-8*i)))).join("."),c=data.find(n=>n.connected);
+  const f=(l,v,cl)=>`<div><span>${l}</span><b style="color:${cl||"var(--hi)"}">${esc(v??"—")}</b></div>`;
+  $("mGrid").innerHTML=f("IPv4 Address",j.ip)+f("Default Gateway",j.gw||"—","var(--cy)")+f("Subnet Mask",mask+" (/"+j.prefix+")")+f("Card mạng",j.iface||"—")
+   +(c?f("SSID",c.ssid)+f("BSSID",c.bssid)+f("Kênh / băng tần",c.channel+" · "+c.band)+f("Tín hiệu",c.dbm+" dBm ("+c.signal_pct+"%)",qual(c.dbm)[1]):"");
+  $("mNote").textContent="";}
+ catch(e){$("mNote").textContent="Không kết nối được server"}icons();}
+const closeSpec=()=>$("modal").classList.remove("on");
+
+
+/* ---------- ping / độ trễ ---------- */
+let pingOn=false,pingTimer=null,pingData=null;
+const PCOL={router:"#34d399",net1:"#38bdf8",net2:"#a78bfa",custom:"#fbbf24"};
+const f1=v=>v==null?"—":(v<10?v.toFixed(1):Math.round(v));
+async function pingFetch(){try{const j=await(await fetch("/api/ping")).json();pingData=j;pingOn=j.on;pingRender();if(j.err)toast(j.err)}catch(e){}}
+function pingLoop(){clearTimeout(pingTimer);if(!$("ping").classList.contains("on"))return;pingFetch().then(()=>{pingTimer=setTimeout(pingLoop,2000)})}
+async function pingCtl(on,reset){try{const j=await post("/api/ping/control",{on,custom:$("pcustom").value.trim(),reset:!!reset});
+ if(j.ok===false){toast(j.error);return}pingData=j;pingOn=j.on;pingRender();pingLoop()}catch(e){toast("Lỗi: "+e)}}
+function diag(){const T=Object.fromEntries((pingData.targets||[]).map(t=>[t.id,t.stats])),r=T.router,i=T.net1&&T.net1.sent>=T.net2.sent?T.net1:(T.net2||T.net1);
+ if(!i||i.sent<10)return["muted","Đang thu thập dữ liệu… (cần khoảng 20 giây để đưa ra gợi ý)"];
+ const rb=r&&r.sent>=10&&(r.loss>=2||(r.avg!=null&&r.avg>20)||r.jitter>10),nb=i.loss>=2||(i.avg!=null&&i.avg>100)||i.jitter>30;
+ if(rb)return["bad",`<b>WiFi / mạng nội bộ có dấu hiệu kém:</b> ping tới router TB ${f1(r.avg)} ms, jitter ${f1(r.jitter)} ms, mất ${r.loss}%. Thử lại gần AP hơn, đổi kênh ít nhiễu (tab “Xếp hạng & Tối ưu kênh”) hoặc kiểm tra máy đang tải nặng.`];
+ if(nb)return["warn",`<b>WiFi tới router ổn nhưng đường ra internet có vấn đề:</b> ping ra ngoài TB ${f1(i.avg)} ms, jitter ${f1(i.jitter)} ms, mất ${i.loss}%. Nhiều khả năng do modem / nhà mạng / đường truyền.`];
+ return["good",`<b>Mạng đang ổn:</b> router TB ${r?f1(r.avg)+" ms":"(chưa đo)"}, internet TB ${f1(i.avg)} ms, mất gói ${i.loss}%.`+(r?"":" Chưa kết nối WiFi nên không đo được router.")]}
+function pingChart(ts){const W=900,H=260,L=44,R=10,T=14,B=18,N=120;
+ const all=ts.flatMap(t=>t.series).filter(v=>v!=null).sort((a,b)=>a-b);
+ const top=Math.max(20,all.length?all[Math.floor(all.length*.98)]*1.25:20),nice=Math.ceil(top/10)*10,Y=v=>T+(1-Math.min(v,nice)/nice)*(H-T-B),X=k=>L+k/(N-1)*(W-L-R);
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+ for(let k=0;k<=4;k++){const v=nice*k/4;s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-5}" y="${Y(v)+4}" text-anchor="end" fill="var(--muted)" font-size="10">${Math.round(v)} ms</text>`}
+ ts.forEach(t=>{const c=PCOL[t.id]||"#94a3b8",off=N-t.series.length;let d="",pv=false;
+  t.series.forEach((v,j)=>{const k=off+j;if(v==null){pv=false;s+=`<line x1="${X(k)}" x2="${X(k)}" y1="${H-B}" y2="${H-B-10}" stroke="var(--bad)" stroke-width="2"/>`;return}d+=(pv?"L":"M")+X(k).toFixed(1)+" "+Y(v).toFixed(1);pv=true});
+  s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2"/>`});
+ return s+"</svg>"}
+function pingRender(){const j=pingData;if(!j)return;
+ $("pToggle").innerHTML=(pingOn?I("square"):I("play"))+(pingOn?"Dừng đo":"Bắt đầu đo");$("pToggle").className="btn sm "+(pingOn?"dn":"p");
+ const ts=j.targets||[];
+ if(!ts.length){$("pCards").innerHTML="";$("pChart").innerHTML='<div class="empty">Bấm “Bắt đầu đo” để ping router và internet.</div>';$("pLg").innerHTML="";$("pDiag").innerHTML="";icons();return}
+ const [cls,msg]=diag();$("pDiag").innerHTML=`<div class="dg ${cls}">${I("stethoscope")}<span>${msg}</span></div>`;
+ $("pCards").innerHTML=ts.map(t=>{const s=t.stats,c=PCOL[t.id]||"#94a3b8",q=s.last==null?"var(--bad)":s.last>100?"var(--bad)":s.last>50?"var(--mid)":"var(--good)";
+  return`<div class="pcd" style="--pc:${c}"><div class="n"><span>${esc(t.name)}</span><span class="mono">${esc(t.host)}</span></div>
+   <div class="v" style="color:${q}">${s.last==null?"mất gói":f1(s.last)+" ms"}</div>
+   <div class="g"><span>Trung bình <b>${f1(s.avg)} ms</b></span><span>Jitter <b>${f1(s.jitter)} ms</b></span><span>Min / Max <b>${f1(s.min)} / ${f1(s.max)}</b></span><span>Mất gói <b style="color:${s.loss>=2?"var(--bad)":"var(--good)"}">${s.loss}%</b> (${s.lost}/${s.sent})</span></div></div>`}).join("");
+ $("pChart").innerHTML=pingChart(ts);
+ $("pLg").innerHTML=ts.map(t=>`<span style="border-color:${PCOL[t.id]||"#94a3b8"}">${esc(t.name)}</span>`).join("")+'<span style="border-color:var(--bad);color:var(--bad)">| = mất gói</span>';
+ icons();}
+$("pToggle").onclick=()=>pingCtl(!pingOn);$("pApply").onclick=()=>pingCtl(true);$("pReset").onclick=()=>pingCtl(pingOn,true);
+$("pcustom").onkeydown=e=>{if(e.key==="Enter")pingCtl(true)};
+
+/* ---------- chọn nền sáng / tối ---------- */
+let themePref="dark";try{themePref=localStorage.getItem("wifi-theme")||"dark"}catch(e){}
+const THN={dark:"Nền tối",light:"Nền sáng",auto:"Tự động theo hệ thống"};
+function applyTheme(){const t=themePref==="auto"?(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"):themePref;
+ document.documentElement.setAttribute("data-theme",t);document.querySelectorAll("#themes .pl").forEach(x=>x.classList.toggle("on",x.dataset.th===themePref))}
+function setTheme(p){themePref=p;try{localStorage.setItem("wifi-theme",p)}catch(e){}applyTheme();toast("Đã chọn: "+THN[p])}
+$("themes").onclick=e=>{const x=e.target.closest("[data-th]");if(x)setTheme(x.dataset.th)};
+try{matchMedia("(prefers-color-scheme: light)").addEventListener("change",()=>{if(themePref==="auto")applyTheme()})}catch(e){}
+applyTheme();
+
+/* ---------- sự kiện ---------- */
+$("tabs").onclick=e=>{const b=e.target.closest(".tab");if(b)showTab(b.dataset.t)};
+$("scanBtn").onclick=scan;$("auto").onchange=()=>{auto();toast(+$("auto").value?"Đã đổi chu kỳ quét sang "+$("auto").value+" giây.":"Đã tạm dừng tự động quét.")};
+$("q").oninput=render;
+$("bands").onclick=e=>{const b=e.target.closest("[data-band]");if(!b)return;bandF=b.dataset.band;document.querySelectorAll("#bands .pl").forEach(x=>x.classList.toggle("on",x===b));render()};
+document.querySelectorAll("[data-sp]").forEach(b=>b.onclick=()=>{specBand=b.dataset.sp;document.querySelectorAll("[data-sp]").forEach(x=>x.classList.toggle("on",x===b));graphs()});
+$("cBtn").onclick=doConnect;$("xBtn").onclick=doDisconnect;$("vBtn").onclick=()=>{dismissed=true;act()};
+$("devBtn").onclick=()=>showTab("dev");$("specBtn").onclick=openSpec;$("mClose").onclick=closeSpec;$("mClose2").onclick=closeSpec;
+$("modal").onclick=e=>{if(e.target===$("modal"))closeSpec()};document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSpec()});
+$("dScan").onclick=()=>{devPoll=0;devScan()};$("dDeep").onclick=()=>{devPoll=0;devScan(false,true)};
+$("pwChk").onchange=e=>{$("pw").type=e.target.checked?"text":"password"};
+$("pw").onkeydown=e=>{if(e.key==="Enter")doConnect()};
+$("bestBtn").onclick=()=>{const b=best();if(!b)return toast("Chưa có mạng nào để chọn.");focus=id(b);dismissed=false;showTab("list");render();
+ toast("Mạng mạnh nhất: "+b.ssid+" ("+b.dbm+" dBm · kênh "+b.channel+")");scrollTo({top:0,behavior:"smooth"})};
+$("copyAll").onclick=()=>copyText(vis().map(n=>n.ssid+": "+n.bssid).join("\n"),"Đã sao chép danh sách BSSID");
+$("csvBtn").onclick=()=>{const k=["ssid","bssid","signal_pct","dbm","channel","band","security","radio"],q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+[k.join(",")].concat(vis().map(n=>k.map(x=>q(n[x])).join(","))).join("\n")],{type:"text/csv"}));a.download="wifi_scan.csv";a.click();toast("Đã xuất file CSV")};
+document.addEventListener("mousemove",e=>{const c=e.target.closest&&e.target.closest(".cv"),t=$("tip");if(!c){t.style.display="none";return}t.textContent=c.dataset.t;t.style.display="block";t.style.left=(e.clientX+12)+"px";t.style.top=(e.clientY+12)+"px"});
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-b]");if(!t)return;focus=t.dataset.b;dismissed=false;showTab("list");render();scrollTo({top:0,behavior:"smooth"})});
+$("tw").onchange=timeG;
+setInterval(()=>{if($("time").classList.contains("on"))timeG()},1000);
+icons();scan();auto();
+</script></body></html>
